@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinmed Pharma Invoice</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        /* Base styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+        .header, .invoice-container {
+            width: 90%;
+            max-width: 1000px;
+        }
+        .header {
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #ff0000;
+        }
+        .header h2 {
+            margin: 5px 0 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        /* Flex layout adjustments */
+        .invoice-details, .client-details {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Table styling */
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .invoice-table th, .invoice-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .invoice-table th {
+            background-color: #009688;
+            color: white;
+            font-size: 1em;
+        }
+        .invoice-table td input {
+            width: 90%;
+        }
+
+        /* Buttons */
+        .generate-button, .add-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #009688;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .generate-button:hover, .add-button:hover {
+            background-color: #00796b;
+        }
+
+        /* Login styling with branding */
+        #loginPage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fff;
+            padding: 30px;
+            border: 2px solid #009688;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        #loginPage h2 {
+            margin-bottom: 15px;
+            color: #009688;
+            font-size: 1.5em;
+        }
+        #loginPage .brand {
+            margin-bottom: 20px;
+        }
+        #loginPage .brand h1 {
+            font-size: 1.2em;
+            color: #ff0000;
+            margin: 0;
+        }
+        #loginPage .brand p {
+            font-size: 0.9em;
+            color: #333;
+            margin: 0;
+        }
+        #loginPage input {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #loginPage button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #009688;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 1em;
+        }
+        #loginPage button:hover {
+            background-color: #00796b;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* Media Query for Mobile */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            .header h2 {
+                font-size: 1.2em;
+            }
+            .generate-button, .add-button {
+                width: 100%;
+            }
+            .invoice-details, .client-details {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Page with Branding Text Only -->
+    <div id="loginPage">
+        <div class="brand">
+            <h1>KINMED PHARMA</h1>
+            <p>MIEUX POUR TOI</p>
+        </div>
+        <h2>Login</h2>
+        <form onsubmit="return handleLogin(event)">
+            <label for="usernameLogin">Username:</label>
+            <input type="text" id="usernameLogin" required>
+            <label for="passwordLogin">Password:</label>
+            <input type="password" id="passwordLogin" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <!-- Main Content (hidden until login is successful) -->
+    <div id="mainContent" style="display: none;">
+        <div class="header">
+            <h1>KINMED PHARMA</h1>
+            <h2>MIEUX POUR TOI</h2>
+        </div>
+
+        <div class="invoice-container">
+            <div class="invoice-details">
+                <div><strong>Invoice Date:</strong> <input type="date" id="invoiceDate" value="today"></div>
+                <div><strong>Invoice Number:</strong> <input type="text" id="invoiceNumber" value="01"></div>
+            </div>
+
+            <div class="client-details">
+                <div><strong>Client Name:</strong> <input type="text" id="clientName" value=""></div>
+                <div><strong>Username:</strong> <input type="text" id="username" value="PRASHANT"></div>
+            </div>
+
+            <table class="invoice-table" id="invoiceTable">
+                <thead>
+                    <tr>
+                        <th>Article Name</th>
+                        <th>Quantity</th>
+                        <th>Per Unit Price (CDF)</th>
+                        <th>Total Amount (CDF)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" class="product" oninput="suggestProduct(this)" list="productList" onkeydown="handleEnter(event)"></td>
+                        <td><input type="number" class="qty" oninput="calculateRowTotal(this)"></td>
+                        <td><input type="number" class="price" oninput="calculateRowTotal(this)" readonly></td>
+                        <td class="total">0.00</td>
+                        <td><button class="delete-button" onclick="deleteRow(this)">Delete</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <datalist id="productList"></datalist>
+
+            <div>
+                <table class="invoice-table">
+                    <tr class="totals-row">
+                        <td colspan="3">Total Quantity</td>
+                        <td id="totalQuantity">0</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td colspan="3">Total Amount (CDF)</td>
+                        <td id="totalAmount">0.00</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td colspan="3">Discount (2%)</td>
+                        <td id="discountAmount">0.00</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td colspan="3">Net Amount (CDF)</td>
+                        <td id="netAmount">0.00</td>
+                    </tr>
+                </table>
+            </div>
+
+            <button class="add-button" onclick="addRow()">Add Row</button>
+            <button class="generate-button" onclick="generatePDF()">Generate PDF</button>
+        </div>
+
+        <footer>
+            &copy; Prashant 2024
+        </footer>
+    </div>
+
+    <!-- Script content remains unchanged -->
+
+</body>
+</html>
+
+
+    <!-- Script content remains unchanged -->
+
+</body>
+</html>
+
+
+    <!-- Add script content here -->
+</body>
+</html>
+
+
+    <!-- Script remains unchanged -->
+
+</body>
+</html>
+
+
+    <script>
+        const users = {
+            "pj": "pj@3988",
+            "munir": "munir@123",
+            "asif": "asif@123",
+            "aabish": "aabish@123",
+            "aftab": "aftab@123",
+            "mobeen": "mobeen@123",
+            "aalim": "aalim@123",
+            "akram": "akram@123",
+            "rizwan": "rizwan@123"
+        };
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('usernameLogin').value.toLowerCase();
+            const password = document.getElementById('passwordLogin').value;
+
+            if (users[username] === password) {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('username').value = username.toUpperCase();
+            } else {
+                alert('Invalid username or password. Please try again.');
+            }
+        }
+
+        const products = {
+             "ALRIN PLUS (ARTEM + LUMEFA) 6 CES": 1917.48,
+            "ALBEDAZ 400 MG B/1 CES": 265.62,
+            "AMIKACIN 500MG INJ 1FLC": 1474.88,
+            "ARTEMETHER INJ 6 AMP": 1327.53,
+            "BAND-AID 100 PCS": 2655.06,
+            "CATHETER NO-22 B/10 PC (BLUE)": 3365.85,
+            "CATHETER NO-24 B/10PC (JAUNE)": 2920.40,
+            "CEFTRIAXONE 1GM INJ (LOCAL)": 737.58,
+            "CIPRO MED INJ SANS TROUSS": 884.93,
+            "COLD INHALAR": 802.28,
+            "COMPRESS 40*40": 2360.09,
+            "EPI G-23 B/50PCS": 4749.53,
+            "ESGAS (ESOMEPRAZOLE) 40MG INJ 1FLQ": 5310.12,
+            "EXTRA POWER 10CES": 442.61,
+            "EXTRA POWER BALM 10ML": 1268.54,
+            "FULLSTOP (MISOPROSTOL) 200MG 4CES": { price: 2360.09, bonus: "10+1" },
+            "GELCID SUSP 200ML": 7374.95,
+            "KIN FIX (CEFIXIME) 200MG 10 CES": { price: 5664.09, bonus: "10+1" },
+            "KIN PLUS CREAM 15*GM": { price: 2065.11, bonus: "1+1" },
+            "KIN PLUS CREAM 30*GM": { price: 3245.01, bonus: "1+1" },
+            "KINART FORTE 2X6 CES": 6785.00,
+            "KINART JUNIOR 1X6 CES": 5900.07,
+            "KINART-DP 1X6 CES": 7669.92,
+            "KINAT 120 INJ": { price: 8259.87, bonus: "5+1" },
+            "KINAT 150 INJ": { price: 9587.40, bonus: "5+1" },
+            "KINAT 180 INJ": { price: 11062.56, bonus: "5+1" },
+            "KINAT 240 INJ": { price: 14159.94, bonus: "5+1" },
+            "KINAT 30 INJ": { price: 3982.59, bonus: "5+1" },
+            "KINAT 60 INJ": { price: 5900.07, bonus: "5+1" },
+            "KINAT 90 INJ": { price: 6785.00, bonus: "5+1" },
+            "KINFORCE -100MG/4CES": 1179.90,
+            "KINFORCE CONDOM BT/3 PCS": 589.95,
+            "KOTAX 1GM": 2950.04,
+            "LEEZ (LEVONORGESTREL) 1.5 MG 1CES": { price: 2360.09, bonus: "10+1" },
+            "LINCOMYCINE 500MG B/10 CAPSUL": 1238.90,
+            "LINCOMYCINE 600 MG INJ": 619.59,
+            "LYOLAC (LACTOBACILLUS RHAMNOSUS GG) (10 STICK)": 17699.93,
+            "MADANI GOLD OIL": 3539.99,
+            "MEDCELL (VIT D3 NANO SHOT) 4AMP (BUV)": 17699.93,
+            "METRO MED INJ SANS TROUSSE": 884.93,
+            "PARA INJ BT/10AMP": 4129.94,
+            "PARACETAMOL 10*10 CES": 1976.48,
+            "PARACETAMOL INJ 100 ML 1 PC": 2950.04,
+            "PATRIMOL PLUS 10CES": 737.58,
+            "RANITIDINE INJ B/5 AMP": 1179.90,
+            "SERINGE 5 CC B /10": 1061.91,
+            "SPARADRA 2.5 CM 1 PC": 1032.56,
+            "TADAX BT/2 CES": { price: 2950.04, bonus: "3+1" },
+            "TEST DE GROSSESSE 1 PC": 176.99,
+            "TRIKIN 3*10 CES": 1327.53,
+            "VITFER-Z SP 150ML": 5900.07,
+            "ZERICA 150MG 30 CAPSULE": 42745.44,
+            "ZERICA 300MG 30 CAPSULE": 51300.57,
+            "ZERICA 75MG 30 CAPSULE": 31358.55,
+            "ZERICA M 30 CAPSULE": 37052.00,
+            "ZIMOS (AZITROMYCINE) 100MG SIROP": 7374.95,
+            "ZIMOS 500 MG BT/5 CES": 10324.98,
+            "ZON 1GR INJ": { price: 3539.99, bonus: "10+1" },
+            "ZON S 1500 INJ": { price: 5162.49, bonus: "10+1" },
+            "ZON S 750 INJ": { price: 3834.96, bonus: "10+1" },
+            "ZON TZ 1125MG (CEF +TAZO)": { price: 7079.97, bonus: "10+1" },
+            "ZON TZ 562.5MG (CEF +TAZO)": { price: 4719.89, bonus: "10+1" }
+        };
+
+        const productList = document.getElementById("productList");
+        for (const product in products) {
+            const option = document.createElement("option");
+            option.value = product;
+            productList.appendChild(option);
+        }
+
+        function suggestProduct(input) {
+            const productName = input.value;
+            if (products[productName]) {
+                const row = input.closest('tr');
+                const priceInput = row.querySelector('.price');
+                const productData = products[productName];
+                
+                if (typeof productData === 'object') {
+                    priceInput.value = productData.price;
+                    row.setAttribute('data-bonus', productData.bonus);
+                } else {
+                    priceInput.value = productData;
+                    row.removeAttribute('data-bonus');
+                }
+                calculateRowTotal(row.querySelector('.qty'));
+            }
+        }
+
+        function calculateRowTotal(input) {
+            const row = input.closest('tr');
+            const qty = parseFloat(row.querySelector('.qty').value) || 0;
+            const price = parseFloat(row.querySelector('.price').value) || 0;
+            const total = qty * price;
+            row.querySelector('.total').textContent = total.toFixed(2);
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let totalQuantity = 0;
+            let totalAmount = 0;
+            let discountableAmount = 0;
+
+            document.querySelectorAll('#invoiceTable tbody tr').forEach(row => {
+                const qty = parseFloat(row.querySelector('.qty').value) || 0;
+                const total = parseFloat(row.querySelector('.total').textContent) || 0;
+                totalQuantity += qty;
+                totalAmount += total;
+
+                if (!row.hasAttribute('data-bonus')) {
+                    discountableAmount += total;
+                }
+            });
+
+            document.getElementById('totalQuantity').textContent = totalQuantity;
+            document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
+
+            const discount = discountableAmount * 0.02;
+            const netAmount = totalAmount - discount;
+
+            document.getElementById('discountAmount').textContent = discount.toFixed(2);
+            document.getElementById('netAmount').textContent = netAmount.toFixed(2);
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                addRow();
+            }
+        }
+
+        function addRow() {
+            const tableBody = document.querySelector('#invoiceTable tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" class="product" oninput="suggestProduct(this)" list="productList" onkeydown="handleEnter(event)"></td>
+                <td><input type="number" class="qty" oninput="calculateRowTotal(this)"></td>
+                <td><input type="number" class="price" oninput="calculateRowTotal(this)" readonly></td>
+                <td class="total">0.00</td>
+                <td><button class="delete-button" onclick="deleteRow(this)">Delete</button></td>
+            `;
+            tableBody.appendChild(newRow);
+        }
+
+        function deleteRow(button) {
+            button.closest('tr').remove();
+            calculateTotals();
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(14);
+
+            // Header design to match website layout
+            function addHeader() {
+                doc.setFont("Helvetica", "bold");
+                doc.setTextColor("#ff0000");
+                doc.text("KINMED PHARMA", 105, 20, { align: 'center' });
+                
+                doc.setFontSize(11);
+                doc.setFont("Helvetica", "normal");
+                doc.setTextColor("#333333");
+                doc.text("MIEUX POUR TOI", 105, 25, { align: 'center' });
+
+                doc.setFontSize(10);
+                doc.text("Ste Srk Sarl", 105, 35, { align: 'center' });
+                doc.text("R.C.C.M :CD/KNG/RCCM/20-B- 00281.1D", 105, 40, { align: 'center' });
+                doc.text("ID. NAT. 01-F4300-N58466C", 105, 45, { align: 'center' });
+                doc.text("Tel: +243 894 589 878", 105, 50, { align: 'center' });
+                doc.text("Av,Bahumbu No.148,Commene Kimbanseke", 105, 55, { align: 'center' });
+                doc.text("Kinshasa", 105, 60, { align: 'center' });
+                doc.text("FACTURE", 105, 70, { align: 'center' });
+            }
+
+            addHeader();
+
+            // Invoice details
+            doc.text(`Invoice Date: ${document.getElementById('invoiceDate').value}`, 10, 85);
+            doc.text(`Invoice Number: ${document.getElementById('invoiceNumber').value}`, 160, 85);
+            doc.text(`Client Name: ${document.getElementById('clientName').value}`, 10, 90);
+            doc.text(`Username: ${document.getElementById('username').value}`, 160, 90);
+
+            const tableData = [];
+            document.querySelectorAll('#invoiceTable tbody tr').forEach(row => {
+                const product = row.querySelector('.product').value || '';
+                const qty = parseFloat(row.querySelector('.qty').value) || 0;
+                const price = parseFloat(row.querySelector('.price').value) || 0;
+                const total = parseFloat(row.querySelector('.total').textContent) || 0;
+
+                tableData.push([product, qty.toString(), price.toFixed(2), total.toFixed(2)]);
+
+                // Handle bonus
+                if (row.hasAttribute('data-bonus')) {
+                    const bonusText = row.getAttribute('data-bonus');
+                    const [requiredQty, bonusQty] = bonusText.split('+').map(Number);
+                    const bonusCount = Math.floor(qty / requiredQty) * bonusQty;
+                    if (bonusCount > 0) {
+                        tableData.push([`${product} (Bonus)`, bonusCount.toString(), "", ""]);
+                    }
+                }
+            });
+
+            doc.autoTable({
+                head: [['Article Name', 'Quantity', 'Per Unit Price (CDF)', 'Total Amount (CDF)']],
+                body: tableData,
+                startY: 100,
+                theme: 'grid',
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [0, 150, 136] },
+                margin: { top: 80 },
+                didDrawPage: function (data) {
+                    if (data.pageNumber > 1) {
+                        addHeader();
+                    }
+                }
+            });
+
+            const finalY = doc.lastAutoTable.finalY + 10;
+            const lineSpacing = 5;
+
+            // Footer with total, discount, and net amount
+            doc.text(`Total Quantity: ${document.getElementById('totalQuantity').textContent}`, 140, finalY);
+            doc.text(`Total Amount (CDF): ${document.getElementById('totalAmount').textContent}`, 140, finalY + lineSpacing);
+            doc.text(`Discount (2%): -${document.getElementById('discountAmount').textContent}`, 140, finalY + 2 * lineSpacing);
+            doc.text(`Net Amount (CDF): ${document.getElementById('netAmount').textContent}`, 140, finalY + 3 * lineSpacing);
+
+            doc.text("CAISSIER", 20, finalY + 30);
+            doc.text("Signature Recu", 160, finalY + 30);
+
+            doc.save('invoice.pdf');
+        }
+    </script>
+
+</body>
+</html>
