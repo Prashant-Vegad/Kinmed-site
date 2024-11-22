@@ -301,7 +301,7 @@
             "EPI G-23 B/50PCS": 4749.53,
             "ESGAS (ESOMEPRAZOLE) 40MG INJ 1FLQ": 5310.12,
             "EXTRA POWER 10CES": 442.61,
-            "EXTRA POWER BALM 10ML": 1268.54,
+            "EXTRA POWER BALM 10ML": 850,
             "FULLSTOP (MISOPROSTOL) 200MG 4CES": { price: 2360.09, bonus: "10+1" },
             "GELCID SUSP 200ML": 7374.95,
             "KIN FIX (CEFIXIME) 200MG 10 CES": { price: 5664.09, bonus: "10+1" },
@@ -489,7 +489,7 @@
                     }
                 }
             });
-
+            // Automatically handle page overflow
             doc.autoTable({
                 head: [['Article Name', 'Quantity', 'Per Unit Price (CDF)', 'Total Amount (CDF)']],
                 body: tableData,
