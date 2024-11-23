@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,29 +6,34 @@
     <title>Kinmed Pharma Invoice</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <style>
         /* Base styling */
-        body {
+        html, body {
+            height: 100%; /* Full height */
+            margin: 0;
+            padding: 0;
             font-family: 'Roboto', sans-serif;
             background-color: #f3fbf9; /* Light green for a healthcare vibe */
-            color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0;
-            padding: 0;
+            overflow: auto; /* Allow scrolling */
         }
+
         .header, .invoice-container {
-            width: 90%;
-            max-width: 1000px;
+            width: 100%; /* Full width */
+            max-width: 1000px; /* Max width for larger screens */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin: 20px 0; /* Margin for spacing */
         }
+
         .header {
             text-align: center;
             padding: 20px 0;
-            margin-top: 20px;
             background-color: #00796b; /* Dark green */
             color: white;
-            border-radius: 10px;
         }
         .header h1 {
             margin: 0;
@@ -49,7 +53,6 @@
             background-color: #e8f5e9; /* Subtle green for sections */
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         /* Table styling */
@@ -76,7 +79,7 @@
         }
 
         /* Buttons */
-        .generate-button, .add-button {
+        .generate-button, .add-button, .price-list-button, .export-excel-button {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: #004d40;
@@ -87,7 +90,7 @@
             font-size: 1em;
             text-align: center;
         }
-        .generate-button:hover, .add-button:hover {
+        .generate-button:hover, .add-button:hover, .price-list-button:hover, .export-excel-button:hover {
             background-color: #00796b;
         }
 
@@ -101,7 +104,6 @@
             border: 2px solid #004d40;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 50px;
             width: 90%;
             max-width: 400px;
             text-align: center;
@@ -152,6 +154,7 @@
             text-align: center;
             font-size: 12px;
             color: #666;
+            width: 100%;
         }
 
         /* Media Query for Mobile */
@@ -162,7 +165,7 @@
             .header h2 {
                 font-size: 1.2em;
             }
-            .generate-button, .add-button {
+            .generate-button, .add-button, .price-list-button, .export-excel-button {
                 width: 100%;
             }
             .invoice-details, .client-details {
@@ -190,7 +193,7 @@
     </div>
 
     <!-- Main Content -->
-    <div id="mainContent" style="display: none;">
+    <div id="mainContent" style="display: none; width: 100%;">
         <div class="header">
             <h1>KINMED PHARMA</h1>
             <h2>MIEUX POUR TOI</h2>
@@ -253,6 +256,8 @@
 
             <button class="add-button" onclick="addRow()">Add Row</button>
             <button class="generate-button" onclick="generatePDF()">Generate PDF</button>
+            <button class="price-list-button" onclick="generatePriceListPDF()">Price List PDF</button>
+            <button class="export-excel-button" onclick="exportPriceListToExcel()">Price List Excel</button>
         </div>
 
         <footer>
@@ -287,7 +292,7 @@
         }
 
         const products = {
-             "ALRIN PLUS (ARTEM + LUMEFA) 6 CES": 1917.48,
+            "ALRIN PLUS (ARTEM + LUMEFA) 6 CES": 1917.48,
             "ALBEDAZ 400 MG B/1 CES": 265.62,
             "AMIKACIN 500MG INJ 1FLC": 1474.88,
             "ARTEMETHER INJ 6 AMP": 1327.53,
@@ -326,7 +331,7 @@
             "LYOLAC (LACTOBACILLUS RHAMNOSUS GG) (10 STICK)": 17699.93,
             "MADANI GOLD OIL": 3539.99,
             "MEDCELL (VIT D3 NANO SHOT) 4AMP (BUV)": 17699.93,
-            "METRO MED INJ SANS TROUSSE": 884.93,
+            "METRO MED INJ SANS TROUS": 884.93,
             "PARA INJ BT/10AMP": 4129.94,
             "PARACETAMOL 10*10 CES": 1976.48,
             "PARACETAMOL INJ 100 ML 1 PC": 2950.04,
@@ -364,7 +369,7 @@
                 const row = input.closest('tr');
                 const priceInput = row.querySelector('.price');
                 const productData = products[productName];
-                
+
                 if (typeof productData === 'object') {
                     priceInput.value = productData.price;
                     row.setAttribute('data-bonus', productData.bonus);
@@ -404,25 +409,18 @@
             document.getElementById('totalQuantity').textContent = totalQuantity;
             document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
 
-            const discount = discountableAmount * 0.02;
+            const discount = discountableAmount * 0.02; // Fixed discount of 2%
             const netAmount = totalAmount - discount;
 
             document.getElementById('discountAmount').textContent = discount.toFixed(2);
             document.getElementById('netAmount').textContent = netAmount.toFixed(2);
         }
 
-        function handleEnter(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                addRow();
-            }
-        }
-
         function addRow() {
             const tableBody = document.querySelector('#invoiceTable tbody');
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
-                <td><input type="text" class="product" oninput="suggestProduct(this)" list="productList" onkeydown="handleEnter(event)"></td>
+                <td><input type="text" class="product" oninput="suggestProduct(this)" list="productList"></td>
                 <td><input type="number" class="qty" oninput="calculateRowTotal(this)"></td>
                 <td><input type="number" class="price" oninput="calculateRowTotal(this)" readonly></td>
                 <td class="total">0.00</td>
@@ -519,6 +517,64 @@
             doc.text("Signature Recu", 160, finalY + 30);
 
             doc.save('invoice.pdf');
+        }
+
+        // New function to generate Price List PDF
+        function generatePriceListPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(14);
+            doc.setFont("Helvetica", "bold");
+            doc.setTextColor("#ff0000");
+            doc.text("KINMED PHARMA", 105, 20, { align: 'center' });
+            doc.setFontSize(11);
+            doc.setTextColor("#333333");
+            doc.text("Price List", 105, 30, { align: 'center' });
+            doc.setFontSize(10);
+
+            const priceListData = [];
+            for (const productName in products) {
+                const productData = products[productName];
+                const price = typeof productData === 'object' ? productData.price : productData;
+                const bonus = typeof productData === 'object' ? productData.bonus : "";
+                priceListData.push([productName, price.toFixed(2), bonus]);
+            }
+
+            doc.autoTable({
+                head: [['Product Name', 'Price (CDF)', 'Bonus']],
+                body: priceListData,
+                startY: 50,
+                theme: 'grid',
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [0, 150, 136] }
+            });
+
+            doc.save('price_list.pdf');
+        }
+
+        // Function to export price list to Excel in xlsx format with title and heading
+        function exportPriceListToExcel() {
+            // Create a new workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                ["KINMED PHARMA"], // Title
+                ["Price List"], // Subtitle
+                ["Product Name", "Price (CDF)", "Bonus"] // Header
+            ];
+
+            for (const productName in products) {
+                const productData = products[productName];
+                const price = typeof productData === 'object' ? productData.price : productData;
+                const bonus = typeof productData === 'object' ? productData.bonus : "";
+                wsData.push([productName, price.toFixed(2), bonus]);
+            }
+
+            // Create a worksheet from the data
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Price List");
+
+            // Export the workbook
+            XLSX.writeFile(wb, "price_list.xlsx");
         }
     </script>
 
