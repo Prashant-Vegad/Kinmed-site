@@ -230,6 +230,10 @@
                 <div><strong>Counting Person's Name:</strong> <input type="text" id="countingPersonName"></div>
                 <div><strong>Location Name:</strong> <input type="text" id="locationName"></div>
                 <div><strong>Date:</strong> <input type="date" id="countingDate"></div>
+                <div>
+                    <button class="add-button" onclick="addInventoryRow()">Add Row</button>
+                    <button class="export-excel-button" onclick="exportInventoryToExcel()">Export to Excel</button>
+                </div>
             </div>
             <div class="inventory-details">
                 <div><strong>Article Name:</strong> <input type="text" id="inventoryArticle" oninput="suggestInventoryArticle(this)" list="inventoryProductList"></div>
@@ -249,8 +253,6 @@
                 <tbody></tbody>
             </table>
             <datalist id="inventoryProductList"></datalist>
-            <button class="add-button" onclick="addInventoryRow()">Add Row</button>
-            <button class="export-excel-button" onclick="exportInventoryToExcel()">Export to Excel</button>
         </div>
 
         <div class="expired-container" style="margin-top: 50px;">
@@ -262,6 +264,10 @@
                 <div><strong>Quantity:</strong> <input type="number" id="expiredQuantity"></div>
                 <div><strong>Expiry Date:</strong> <input type="text" id="expiredDate" placeholder="DD/MM"></div>
                 <div><strong>Pack Size:</strong> <input type="text" id="expiredPackSize" readonly></div>
+                <div>
+                    <button class="add-button" onclick="addExpiredRow()">Add Row</button>
+                    <button class="export-excel-button" onclick="exportExpiredToExcel()">Export to Excel</button>
+                </div>
             </div>
             <table class="expired-table" id="expiredTable">
                 <thead>
@@ -276,8 +282,6 @@
                 <tbody></tbody>
             </table>
             <datalist id="expiredProductList"></datalist>
-            <button class="add-button" onclick="addExpiredRow()">Add Row</button>
-            <button class="export-excel-button" onclick="exportExpiredToExcel()">Export to Excel</button>
         </div>
 
         <footer>
@@ -301,7 +305,7 @@
 
         // Product data (Add your additional articles here)
         const products = {
-           "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
+            "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 10% 500ML": { itemCode: "PH05718", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 5% 1LTR": { itemCode: "PH05721", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 5% 500ML": { itemCode: "PH05715", packSize: "1", price: 0 },
