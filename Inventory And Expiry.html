@@ -236,7 +236,7 @@
                 </div>
             </div>
             <div class="inventory-details">
-                <div><strong>Article Name:</strong> <input type="text" id="inventoryArticle" oninput="suggestInventoryArticle(this)" list="inventoryProductList"></div>
+                <div><strong>Article Name:</strong> <input type="text" id="inventoryArticle" oninput="debouncedSuggestInventoryArticle(this)" list="inventoryProductList"></div>
                 <div><strong>Quantity:</strong> <input type="number" id="inventoryQuantity"></div>
                 <div><strong>Pack Size:</strong> <input type="text" id="inventoryPackSize" readonly></div>
             </div>
@@ -260,7 +260,7 @@
             <div class="expired-details">
                 <div><strong>Counting Person's Name:</strong> <input type="text" id="expiredCountingPersonName"></div>
                 <div><strong>Location Name:</strong> <input type="text" id="expiredLocationName"></div>
-                <div><strong>Article Name:</strong> <input type="text" id="expiredArticle" oninput="suggestExpiredArticle(this)" list="expiredProductList"></div>
+                <div><strong>Article Name:</strong> <input type="text" id="expiredArticle" oninput="debouncedSuggestExpiredArticle(this)" list="expiredProductList"></div>
                 <div><strong>Quantity:</strong> <input type="number" id="expiredQuantity"></div>
                 <div><strong>Expiry Date:</strong> <input type="text" id="expiredDate" placeholder="DD/MM"></div>
                 <div><strong>Pack Size:</strong> <input type="text" id="expiredPackSize" readonly></div>
@@ -303,9 +303,10 @@
             "rizwan": "rizwan@123"
         };
 
-        // Product data (Add your additional articles here)
+        // Sample product data (Add your additional articles here)
         const products = {
-            "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
+            // Assuming we have a large list of articles here
+           "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 10% 500ML": { itemCode: "PH05718", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 5% 1LTR": { itemCode: "PH05721", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 5% 500ML": { itemCode: "PH05715", packSize: "1", price: 0 },
@@ -5919,11 +5920,30 @@
         // Populate the product list for suggestions
         const inventoryProductList = document.getElementById("inventoryProductList");
         const expiredProductList = document.getElementById("expiredProductList");
-        for (const product in products) {
-            const option = document.createElement("option");
-            option.value = product;
-            inventoryProductList.appendChild(option);
-            expiredProductList.appendChild(option.cloneNode(true)); // Clone for expired product list
+
+        function populateProductLists() {
+            for (const product in products) {
+                const option = document.createElement("option");
+                option.value = product;
+                inventoryProductList.appendChild(option);
+                expiredProductList.appendChild(option.cloneNode(true)); // Clone for expired product list
+            }
+        }
+
+        populateProductLists(); // Call the function to populate the lists
+
+        // Debounced input handling
+        let debounceTimer;
+        const debounceDelay = 300; // Delay in milliseconds
+
+        function debouncedSuggestInventoryArticle(input) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => suggestInventoryArticle(input), debounceDelay);
+        }
+
+        function debouncedSuggestExpiredArticle(input) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => suggestExpiredArticle(input), debounceDelay);
         }
 
         // Function to suggest inventory articles
@@ -5932,12 +5952,14 @@
             const inventoryProductList = document.getElementById("inventoryProductList");
             inventoryProductList.innerHTML = ''; // Clear previous options
 
-            // Loop through products and filter based on input
+            // Limit suggestions to 10 for performance
+            let suggestionCount = 0;
             for (const product in products) {
-                if (product.toLowerCase().includes(articleName)) {
+                if (product.toLowerCase().includes(articleName) && suggestionCount < 10) {
                     const option = document.createElement("option");
                     option.value = product;
                     inventoryProductList.appendChild(option);
+                    suggestionCount++;
                 }
             }
 
@@ -5953,12 +5975,14 @@
             const expiredProductList = document.getElementById("expiredProductList");
             expiredProductList.innerHTML = ''; // Clear previous options
 
-            // Loop through products and filter based on input
+            // Limit suggestions to 10 for performance
+            let suggestionCount = 0;
             for (const product in products) {
-                if (product.toLowerCase().includes(articleName)) {
+                if (product.toLowerCase().includes(articleName) && suggestionCount < 10) {
                     const option = document.createElement("option");
                     option.value = product;
                     expiredProductList.appendChild(option);
+                    suggestionCount++;
                 }
             }
 
