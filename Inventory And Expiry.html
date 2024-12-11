@@ -23,7 +23,8 @@
 
         .header,
         .inventory-container,
-        .expired-container {
+        .expired-container,
+        .calculator-container {
             width: 100%;
             max-width: 1000px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -196,6 +197,60 @@
                 flex-direction: column;
             }
         }
+
+        /* Calculator styling */
+        .calculator-container {
+            padding: 20px;
+            background-color: #e8f5e9;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .calculator-display {
+            width: 100%;
+            padding: 10px;
+            font-size: 2em;
+            text-align: right;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calculator-button {
+            padding: 20px;
+            font-size: 1.5em;
+            background-color: #004d40;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .calculator-button:hover {
+            background-color: #00796b;
+        }
+
+        @media (max-width: 400px) {
+            .calculator-display {
+                font-size: 1.5em;
+            }
+
+            .calculator-button {
+                padding: 15px;
+                font-size: 1.2em;
+            }
+        }
     </style>
 </head>
 
@@ -284,6 +339,30 @@
             <datalist id="expiredProductList"></datalist>
         </div>
 
+        <!-- Calculator Section -->
+        <div class="calculator-container">
+            <h2>Calculator</h2>
+            <input type="text" id="calculatorDisplay" class="calculator-display" disabled>
+            <div class="calculator-buttons">
+                <button class="calculator-button" onclick="appendToDisplay('7')">7</button>
+                <button class="calculator-button" onclick="appendToDisplay('8')">8</button>
+                <button class="calculator-button" onclick="appendToDisplay('9')">9</button>
+                <button class="calculator-button" onclick="appendToDisplay('/')">/</button>
+                <button class="calculator-button" onclick="appendToDisplay('4')">4</button>
+                <button class="calculator-button" onclick="appendToDisplay('5')">5</button>
+                <button class="calculator-button" onclick="appendToDisplay('6')">6</button>
+                <button class="calculator-button" onclick="appendToDisplay('*')">*</button>
+                <button class="calculator-button" onclick="appendToDisplay('1')">1</button>
+                <button class="calculator-button" onclick="appendToDisplay('2')">2</button>
+                <button class="calculator-button" onclick="appendToDisplay('3')">3</button>
+                <button class="calculator-button" onclick="appendToDisplay('-')">-</button>
+                <button class="calculator-button" onclick="appendToDisplay('0')">0</button>
+                <button class="calculator-button" onclick="clearDisplay()">C</button>
+                <button class="calculator-button" onclick="calculateResult()">=</button>
+                <button class="calculator-button" onclick="appendToDisplay('+')">+</button>
+            </div>
+        </div>
+
         <footer>
             &copy; 2024 All Rights Reserved By Prashant
         </footer>
@@ -305,8 +384,7 @@
 
         // Sample product data (Add your additional articles here)
         const products = {
-            // Assuming we have a large list of articles here
-           "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
+            "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 10% 500ML": { itemCode: "PH05718", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 5% 1LTR": { itemCode: "PH05721", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 5% 500ML": { itemCode: "PH05715", packSize: "1", price: 0 },
@@ -6099,6 +6177,30 @@
             XLSX.utils.book_append_sheet(wb, ws, "Expired Articles");
 
             XLSX.writeFile(wb, "expired_articles.xlsx");
+        }
+
+        // Calculator functions
+        let currentInput = '';
+
+        function appendToDisplay(value) {
+            currentInput += value;
+            document.getElementById("calculatorDisplay").value = currentInput;
+        }
+
+        function clearDisplay() {
+            currentInput = '';
+            document.getElementById("calculatorDisplay").value = '';
+        }
+
+        function calculateResult() {
+            try {
+                const result = eval(currentInput);
+                document.getElementById("calculatorDisplay").value = result;
+                currentInput = result.toString(); // Store the result for further calculations
+            } catch (error) {
+                alert("Invalid Calculation");
+                clearDisplay();
+            }
         }
     </script>
 
