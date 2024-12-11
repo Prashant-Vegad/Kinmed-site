@@ -41,12 +41,12 @@
 
         .header h1 {
             margin: 0;
-            font-size: 2.5em;
+            font-size: 2em; /* Reduced font size */
         }
 
         .header h2 {
             margin: 10px 0 0;
-            font-size: 1.5em;
+            font-size: 1.2em; /* Reduced font size */
         }
 
         /* Login styling with branding */
@@ -67,23 +67,7 @@
         #loginPage h2 {
             margin-bottom: 15px;
             color: #004d40;
-            font-size: 1.8em;
-        }
-
-        #loginPage .brand {
-            margin-bottom: 20px;
-        }
-
-        #loginPage .brand h1 {
-            font-size: 1.5em;
-            color: #00796b;
-            margin: 0;
-        }
-
-        #loginPage .brand p {
-            font-size: 1em;
-            color: #333;
-            margin: 0;
+            font-size: 1.5em; /* Reduced font size */
         }
 
         #loginPage input {
@@ -96,14 +80,14 @@
 
         #loginPage button {
             margin-top: 15px;
-            padding: 10px 20px;
+            padding: 8px; /* Reduced padding */
             background-color: #004d40;
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 5px;
             width: 100%;
-            font-size: 1em;
+            font-size: 0.9em; /* Reduced font size */
         }
 
         #loginPage button:hover {
@@ -116,9 +100,9 @@
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px; /* Reduced gap */
             background-color: #e8f5e9;
-            padding: 15px;
+            padding: 10px; /* Reduced padding */
             border-radius: 8px;
         }
 
@@ -138,7 +122,7 @@
         .inventory-table td,
         .expired-table td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px; /* Reduced padding */
             text-align: center;
         }
 
@@ -146,20 +130,20 @@
         .expired-table th {
             background-color: #004d40;
             color: white;
-            font-size: 1em;
+            font-size: 0.9em; /* Reduced font size */
         }
 
         /* Buttons */
         .add-button,
         .export-excel-button {
-            margin-top: 20px;
-            padding: 8px 16px; /* Reduced padding for smaller buttons */
+            margin-top: 10px; /* Reduced margin */
+            padding: 6px 12px; /* Reduced padding */
             background-color: #004d40;
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 5px;
-            font-size: 0.9em; /* Reduced font size */
+            font-size: 0.8em; /* Reduced font size */
             text-align: center;
         }
 
@@ -180,16 +164,17 @@
         /* Media Query for Mobile */
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 1.8em;
+                font-size: 1.5em; /* Further reduced for mobile */
             }
 
             .header h2 {
-                font-size: 1.2em;
+                font-size: 1em; /* Further reduced for mobile */
             }
 
             .add-button,
             .export-excel-button {
                 width: 100%;
+                font-size: 0.7em; /* Further reduced for mobile */
             }
 
             .inventory-details,
@@ -212,7 +197,7 @@
         .calculator-display {
             width: 100%;
             padding: 10px;
-            font-size: 2em;
+            font-size: 1.5em; /* Reduced font size */
             text-align: right;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -223,12 +208,12 @@
         .calculator-buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 5px; /* Reduced gap */
         }
 
         .calculator-button {
-            padding: 20px;
-            font-size: 1.5em;
+            padding: 15px; /* Reduced padding */
+            font-size: 1.2em; /* Reduced font size */
             background-color: #004d40;
             color: white;
             border: none;
@@ -243,12 +228,12 @@
 
         @media (max-width: 400px) {
             .calculator-display {
-                font-size: 1.5em;
+                font-size: 1.2em; /* Reduced font size */
             }
 
             .calculator-button {
-                padding: 15px;
-                font-size: 1.2em;
+                padding: 10px; /* Further reduced padding */
+                font-size: 1em; /* Further reduced font size */
             }
         }
     </style>
@@ -287,7 +272,7 @@
                 <div><strong>Date:</strong> <input type="date" id="countingDate"></div>
                 <div>
                     <button class="add-button" onclick="addInventoryRow()">Add Row</button>
-                    <button class="export-excel-button" onclick="exportInventoryToExcel()">Export to Excel</button>
+                    <button class="export-excel-button" onclick="exportInventoryToExcel()">Export</button>
                 </div>
             </div>
             <div class="inventory-details">
@@ -321,7 +306,7 @@
                 <div><strong>Pack Size:</strong> <input type="text" id="expiredPackSize" readonly></div>
                 <div>
                     <button class="add-button" onclick="addExpiredRow()">Add Row</button>
-                    <button class="export-excel-button" onclick="exportExpiredToExcel()">Export to Excel</button>
+                    <button class="export-excel-button" onclick="exportExpiredToExcel()">Export</button>
                 </div>
             </div>
             <table class="expired-table" id="expiredTable">
@@ -499,7 +484,7 @@
                     <td>${articleInput.value}</td>
                     <td>${quantityInput.value}</td>
                     <td>${packSizeInput.value}</td>
-                    <td><button class="delete-button" onclick="deleteInventoryRow(this)">Delete</button></td>
+                    <td><button class="delete-button" onclick="deleteInventoryRow(this)">Del</button></td>
                 `;
                 tableBody.appendChild(newRow);
 
@@ -554,7 +539,7 @@
                     <td>${quantityInput.value}</td>
                     <td>${expiryDateInput.value}</td>
                     <td>${packSizeInput.value}</td>
-                    <td><button class="delete-button" onclick="deleteExpiredRow(this)">Delete</button></td>
+                    <td><button class="delete-button" onclick="deleteExpiredRow(this)">Del</button></td>
                 `;
                 tableBody.appendChild(newRow);
 
