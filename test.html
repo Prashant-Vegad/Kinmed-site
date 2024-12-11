@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinmed Pharma Inventory</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <style>
+        /* Base styling */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f3fbf9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: auto;
+        }
+
+        .header,
+        .inventory-container,
+        .expired-container,
+        .calculator-container {
+            width: 100%;
+            max-width: 1000px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #00796b;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .header h2 {
+            margin: 10px 0 0;
+            font-size: 1.5em;
+        }
+
+        /* Login styling with branding */
+        #loginPage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #e8f5e9;
+            padding: 30px;
+            border: 2px solid #004d40;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        #loginPage h2 {
+            margin-bottom: 15px;
+            color: #004d40;
+            font-size: 1.8em;
+        }
+
+        #loginPage .brand {
+            margin-bottom: 20px;
+        }
+
+        #loginPage .brand h1 {
+            font-size: 1.5em;
+            color: #00796b;
+            margin: 0;
+        }
+
+        #loginPage .brand p {
+            font-size: 1em;
+            color: #333;
+            margin: 0;
+        }
+
+        #loginPage input {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #loginPage button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #004d40;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 1em;
+        }
+
+        #loginPage button:hover {
+            background-color: #00796b;
+        }
+
+        /* Inventory layout adjustments */
+        .inventory-details,
+        .expired-details {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        /* Table styling */
+        .inventory-table,
+        .expired-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .inventory-table th,
+        .expired-table th,
+        .inventory-table td,
+        .expired-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .inventory-table th,
+        .expired-table th {
+            background-color: #004d40;
+            color: white;
+            font-size: 1em;
+        }
+
+        /* Buttons */
+        .add-button,
+        .export-excel-button {
+            margin-top: 20px;
+            padding: 8px 16px; /* Reduced padding for smaller buttons */
+            background-color: #004d40;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.9em; /* Reduced font size */
+            text-align: center;
+        }
+
+        .add-button:hover,
+        .export-excel-button:hover {
+            background-color: #00796b;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            width: 100%;
+        }
+
+        /* Media Query for Mobile */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .header h2 {
+                font-size: 1.2em;
+            }
+
+            .add-button,
+            .export-excel-button {
+                width: 100%;
+            }
+
+            .inventory-details,
+            .expired-details {
+                flex-direction: column;
+            }
+        }
+
+        /* Calculator styling */
+        .calculator-container {
+            padding: 20px;
+            background-color: #e8f5e9;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .calculator-display {
+            width: 100%;
+            padding: 10px;
+            font-size: 2em;
+            text-align: right;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calculator-button {
+            padding: 20px;
+            font-size: 1.5em;
+            background-color: #004d40;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .calculator-button:hover {
+            background-color: #00796b;
+        }
+
+        @media (max-width: 400px) {
+            .calculator-display {
+                font-size: 1.5em;
+            }
+
+            .calculator-button {
+                padding: 15px;
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="brand">
+            <h1>KINMED PHARMA</h1>
+            <p>MIEUX POUR TOI</p>
+        </div>
+        <h2>Login</h2>
+        <form onsubmit="return handleLogin(event)">
+            <label for="usernameLogin">Username:</label>
+            <input type="text" id="usernameLogin" required>
+            <label for="passwordLogin">Password:</label>
+            <input type="password" id="passwordLogin" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display: none; width: 100%;">
+        <div class="header">
+            <h1>KINMED PHARMA</h1>
+            <h2>MIEUX POUR TOI</h2>
+        </div>
+
+        <div class="inventory-container">
+            <h2>Inventory Stock Counting</h2>
+            <div class="inventory-details">
+                <div><strong>Counting Person's Name:</strong> <input type="text" id="countingPersonName"></div>
+                <div><strong>Location Name:</strong> <input type="text" id="locationName"></div>
+                <div><strong>Date:</strong> <input type="date" id="countingDate"></div>
+                <div>
+                    <button class="add-button" onclick="addInventoryRow()">Add Row</button>
+                    <button class="export-excel-button" onclick="exportInventoryToExcel()">Export to Excel</button>
+                </div>
+            </div>
+            <div class="inventory-details">
+                <div><strong>Article Name:</strong> <input type="text" id="inventoryArticle" oninput="debouncedSuggestInventoryArticle(this)" list="inventoryProductList"></div>
+                <div><strong>Quantity:</strong> <input type="number" id="inventoryQuantity"></div>
+                <div><strong>Pack Size:</strong> <input type="text" id="inventoryPackSize" readonly></div>
+            </div>
+            <table class="inventory-table" id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th>Item Code</th>
+                        <th>Article Name</th>
+                        <th>Quantity</th>
+                        <th>Pack Size</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <datalist id="inventoryProductList"></datalist>
+        </div>
+
+        <div class="expired-container" style="margin-top: 50px;">
+            <h2>Expired Articles Counting</h2>
+            <div class="expired-details">
+                <div><strong>Counting Person's Name:</strong> <input type="text" id="expiredCountingPersonName"></div>
+                <div><strong>Location Name:</strong> <input type="text" id="expiredLocationName"></div>
+                <div><strong>Article Name:</strong> <input type="text" id="expiredArticle" oninput="debouncedSuggestExpiredArticle(this)" list="expiredProductList"></div>
+                <div><strong>Quantity:</strong> <input type="number" id="expiredQuantity"></div>
+                <div><strong>Expiry Date:</strong> <input type="text" id="expiredDate" placeholder="DD/MM"></div>
+                <div><strong>Pack Size:</strong> <input type="text" id="expiredPackSize" readonly></div>
+                <div>
+                    <button class="add-button" onclick="addExpiredRow()">Add Row</button>
+                    <button class="export-excel-button" onclick="exportExpiredToExcel()">Export to Excel</button>
+                </div>
+            </div>
+            <table class="expired-table" id="expiredTable">
+                <thead>
+                    <tr>
+                        <th>Article Name</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Pack Size</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <datalist id="expiredProductList"></datalist>
+        </div>
+
+        <!-- Calculator Section -->
+        <div class="calculator-container">
+            <h2>गिनती करने का इन्तजाम है भाई</h2>
+            <input type="text" id="calculatorDisplay" class="calculator-display" disabled>
+            <div class="calculator-buttons">
+                <button class="calculator-button" onclick="appendToDisplay('7')">7</button>
+                <button class="calculator-button" onclick="appendToDisplay('8')">8</button>
+                <button class="calculator-button" onclick="appendToDisplay('9')">9</button>
+                <button class="calculator-button" onclick="appendToDisplay('/')">/</button>
+                <button class="calculator-button" onclick="appendToDisplay('4')">4</button>
+                <button class="calculator-button" onclick="appendToDisplay('5')">5</button>
+                <button class="calculator-button" onclick="appendToDisplay('6')">6</button>
+                <button class="calculator-button" onclick="appendToDisplay('*')">*</button>
+                <button class="calculator-button" onclick="appendToDisplay('1')">1</button>
+                <button class="calculator-button" onclick="appendToDisplay('2')">2</button>
+                <button class="calculator-button" onclick="appendToDisplay('3')">3</button>
+                <button class="calculator-button" onclick="appendToDisplay('-')">-</button>
+                <button class="calculator-button" onclick="appendToDisplay('0')">0</button>
+                <button class="calculator-button" onclick="clearDisplay()">C</button>
+                <button class="calculator-button" onclick="calculateResult()">=</button>
+                <button class="calculator-button" onclick="appendToDisplay('+')">+</button>
+            </div>
+        </div>
+
+        <footer>
+            &copy; 2024 All Rights Reserved By Prashant
+        </footer>
+    </div>
+
+    <script>
+        const users = {
+            "pj": "pj@3988",
+            "admin": "nikki@3988",
+            "munir": "munir@123",
+            "asif": "asif@123",
+            "aabish": "aabish@123",
+            "aftab": "aftab@123",
+            "mobeen": "mobeen@123",
+            "aalim": "aalim@123",
+            "akram": "akram@123",
+            "rizwan": "rizwan@123"
+        };
+
+        // Sample product data (Add your additional articles here)
+        const products = {
+            "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
+            "3 FORT CES B/30": { itemCode: "PH00575", packSize: "3", price: 0 },
+            "3 FORT INJ B/ 10 AMP 1 PLQ": { itemCode: "PH01374", packSize: "10", price: 0 },
+            "3 FORTE SIROP": { itemCode: "PH01946", packSize: "1", price: 0 },
+            "3 FORTE-Z B/30CES": { itemCode: "PH05403", packSize: "3", price: 0 },
+            "3 VIT FORT INJ BT/10 AMP": { itemCode: "PH05309", packSize: "10", price: 0 },
+            "3 VIT FORT SP 100 ML": { itemCode: "PH01906", packSize: "1", price: 0 },
+            "3 VIT FORTE CES": { itemCode: "PH00428", packSize: "1", price: 0 },
+            "3 VOIES ROBINET SANS EXTENSIO TUBE 3 FACON ROBINET": { itemCode: "PH05206", packSize: "1", price: 0 },
+        };
+
+        // Login function
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('usernameLogin').value.toLowerCase();
+            const password = document.getElementById('passwordLogin').value;
+
+            // Check if username and password are valid
+            if (users[username] && users[username] === password) {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            } else {
+                alert('Password Sahi Daal Bhai.');
+            }
+        }
+
+        // Populate the product list for suggestions
+        const inventoryProductList = document.getElementById("inventoryProductList");
+        const expiredProductList = document.getElementById("expiredProductList");
+
+        function populateProductLists() {
+            for (const product in products) {
+                const option = document.createElement("option");
+                option.value = product;
+                inventoryProductList.appendChild(option);
+                expiredProductList.appendChild(option.cloneNode(true)); // Clone for expired product list
+            }
+        }
+
+        populateProductLists(); // Call the function to populate the lists
+
+        // Debounced input handling
+        let debounceTimer;
+        const debounceDelay = 300; // Delay in milliseconds
+
+        function debouncedSuggestInventoryArticle(input) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => suggestInventoryArticle(input), debounceDelay);
+        }
+
+        function debouncedSuggestExpiredArticle(input) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => suggestExpiredArticle(input), debounceDelay);
+        }
+
+        // Function to suggest inventory articles
+        function suggestInventoryArticle(input) {
+            const articleName = input.value.toLowerCase();
+            const inventoryProductList = document.getElementById("inventoryProductList");
+            inventoryProductList.innerHTML = ''; // Clear previous options
+
+            // Limit suggestions to 10 for performance
+            let suggestionCount = 0;
+            for (const product in products) {
+                if (product.toLowerCase().includes(articleName) && suggestionCount < 10) {
+                    const option = document.createElement("option");
+                    option.value = product;
+                    inventoryProductList.appendChild(option);
+                    suggestionCount++;
+                }
+            }
+
+            // Auto-fill pack size based on selected product
+            if (products[input.value]) {
+                document.getElementById("inventoryPackSize").value = products[input.value].packSize;
+            }
+        }
+
+        // Function to suggest expired articles
+        function suggestExpiredArticle(input) {
+            const articleName = input.value.toLowerCase();
+            const expiredProductList = document.getElementById("expiredProductList");
+            expiredProductList.innerHTML = ''; // Clear previous options
+
+            // Limit suggestions to 10 for performance
+            let suggestionCount = 0;
+            for (const product in products) {
+                if (product.toLowerCase().includes(articleName) && suggestionCount < 10) {
+                    const option = document.createElement("option");
+                    option.value = product;
+                    expiredProductList.appendChild(option);
+                    suggestionCount++;
+                }
+            }
+
+            // Auto-fill pack size based on selected product
+            if (products[input.value]) {
+                document.getElementById("expiredPackSize").value = products[input.value].packSize;
+            }
+        }
+
+        function addInventoryRow() {
+            const articleInput = document.getElementById("inventoryArticle");
+            const packSizeInput = document.getElementById("inventoryPackSize");
+            const quantityInput = document.getElementById("inventoryQuantity");
+
+            if (articleInput.value && packSizeInput.value && quantityInput.value) {
+                const tableBody = document.querySelector('#inventoryTable tbody');
+                const newRow = document.createElement('tr');
+                const itemCode = products[articleInput.value].itemCode; // Get item code
+                newRow.innerHTML = `
+                    <td>${itemCode}</td>
+                    <td>${articleInput.value}</td>
+                    <td>${quantityInput.value}</td>
+                    <td>${packSizeInput.value}</td>
+                    <td><button class="delete-button" onclick="deleteInventoryRow(this)">Delete</button></td>
+                `;
+                tableBody.appendChild(newRow);
+
+                // Clear inputs for next entry
+                articleInput.value = '';
+                packSizeInput.value = '';
+                quantityInput.value = '';
+            }
+        }
+
+        function deleteInventoryRow(button) {
+            button.closest('tr').remove();
+        }
+
+        function exportInventoryToExcel() {
+            const wb = XLSX.utils.book_new();
+            const wsData = [["KINMED PHARMA"], ["Inventory Stock Counting"], ["Counting Person's Name", document.getElementById('countingPersonName').value],
+                ["Location Name", document.getElementById('locationName').value], ["Date", document.getElementById('countingDate').value],
+                ["Item Code", "Article Name", "Quantity", "Pack Size"]];
+
+            const rows = Array.from(document.querySelectorAll('#inventoryTable tbody tr')).map(row => {
+                const itemCode = row.cells[0].textContent;
+                const articleName = row.cells[1].textContent;
+                const quantity = row.cells[2].textContent;
+                const packSize = row.cells[3].textContent;
+                return [itemCode, articleName, quantity, packSize];
+            });
+
+            // Sort rows A to Z by Article Name
+            rows.sort((a, b) => a[1].localeCompare(b[1]));
+
+            rows.forEach(row => wsData.push(row));
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Inventory");
+
+            XLSX.writeFile(wb, "inventory.xlsx");
+        }
+
+        // Expired Articles Section
+        function addExpiredRow() {
+            const articleInput = document.getElementById("expiredArticle");
+            const quantityInput = document.getElementById("expiredQuantity");
+            const expiryDateInput = document.getElementById("expiredDate");
+            const packSizeInput = document.getElementById("expiredPackSize");
+
+            if (articleInput.value && quantityInput.value && expiryDateInput.value && packSizeInput.value) {
+                const tableBody = document.querySelector('#expiredTable tbody');
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${articleInput.value}</td>
+                    <td>${quantityInput.value}</td>
+                    <td>${expiryDateInput.value}</td>
+                    <td>${packSizeInput.value}</td>
+                    <td><button class="delete-button" onclick="deleteExpiredRow(this)">Delete</button></td>
+                `;
+                tableBody.appendChild(newRow);
+
+                // Clear inputs for next entry
+                articleInput.value = '';
+                quantityInput.value = '';
+                expiryDateInput.value = '';
+                packSizeInput.value = '';
+            }
+        }
+
+        function deleteExpiredRow(button) {
+            button.closest('tr').remove();
+        }
+
+        function exportExpiredToExcel() {
+            const wb = XLSX.utils.book_new();
+            const wsData = [["KINMED PHARMA"], ["Expired Articles Counting"], ["Counting Person's Name", document.getElementById('expiredCountingPersonName').value],
+                ["Location Name", document.getElementById('expiredLocationName').value], ["Article Name", "Quantity", "Expiry Date", "Pack Size"]];
+
+            const rows = Array.from(document.querySelectorAll('#expiredTable tbody tr')).map(row => {
+                const articleName = row.cells[0].textContent;
+                const quantity = row.cells[1].textContent;
+                const expiryDate = row.cells[2].textContent;
+                const packSize = row.cells[3].textContent;
+                return [articleName, quantity, expiryDate, packSize];
+            });
+
+            // Sort rows A to Z by Article Name
+            rows.sort((a, b) => a[0].localeCompare(b[0]));
+
+            rows.forEach(row => wsData.push(row));
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Expired Articles");
+
+            XLSX.writeFile(wb, "expired_articles.xlsx");
+        }
+
+        // Calculator functions
+        let currentInput = '';
+
+        function appendToDisplay(value) {
+            currentInput += value;
+            document.getElementById("calculatorDisplay").value = currentInput;
+        }
+
+        function clearDisplay() {
+            currentInput = '';
+            document.getElementById("calculatorDisplay").value = '';
+        }
+
+        function calculateResult() {
+            try {
+                const result = eval(currentInput);
+                document.getElementById("calculatorDisplay").value = result;
+                currentInput = result.toString(); // Store the result for further calculations
+            } catch (error) {
+                alert("Invalid Calculation");
+                clearDisplay();
+            }
+        }
+    </script>
+
+</body>
+
+</html>
