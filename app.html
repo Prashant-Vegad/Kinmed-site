@@ -384,7 +384,7 @@
 
         // Sample product data
         const products = {
-            "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
+           "(CU) SERUM GLUCOSE 10% 1LTR": { itemCode: "PH05723", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 10% 500ML": { itemCode: "PH05718", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 5% 1LTR": { itemCode: "PH05721", packSize: "1", price: 0 },
 "(CU) SERUM GLUCOSE 5% 500ML": { itemCode: "PH05715", packSize: "1", price: 0 },
@@ -6092,9 +6092,14 @@
 
         function exportInventoryToExcel() {
             const wb = XLSX.utils.book_new();
-            const wsData = [["KINMED PHARMA"], ["Inventory Stock Counting"], ["Counting Person's Name", document.getElementById('countingPersonName').value],
-                ["Location Name", document.getElementById('locationName').value], ["Date", document.getElementById('countingDate').value],
-                ["Item Code", "Article Name", "Quantity", "Pack Size"]];
+            const wsData = [
+                ["KINMED PHARMA"],
+                ["Inventory Stock Counting"],
+                ["Counting Person's Name", document.getElementById('countingPersonName').value],
+                ["Location Name", document.getElementById('locationName').value],
+                ["Date", document.getElementById('countingDate').value],
+                ["Item Code", "Article Name", "Quantity", "Pack Size"]
+            ];
 
             const rows = Array.from(document.querySelectorAll('#inventoryTable tbody tr')).map(row => {
                 const itemCode = row.cells[0].textContent;
@@ -6104,11 +6109,14 @@
                 return [itemCode, articleName, quantity, packSize];
             });
 
+            // Sort rows A to Z by Article Name
             rows.sort((a, b) => a[1].localeCompare(b[1]));
             rows.forEach(row => wsData.push(row));
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Inventory");
+
+            // Save the file with the correct filename
             XLSX.writeFile(wb, "inventory.xlsx");
         }
 
@@ -6145,8 +6153,13 @@
 
         function exportExpiredToExcel() {
             const wb = XLSX.utils.book_new();
-            const wsData = [["KINMED PHARMA"], ["Expired Articles Counting"], ["Counting Person's Name", document.getElementById('expiredCountingPersonName').value],
-                ["Location Name", document.getElementById('expiredLocationName').value], ["Article Name", "Quantity", "Expiry Date", "Pack Size"]];
+            const wsData = [
+                ["KINMED PHARMA"],
+                ["Expired Articles Counting"],
+                ["Counting Person's Name", document.getElementById('expiredCountingPersonName').value],
+                ["Location Name", document.getElementById('expiredLocationName').value],
+                ["Article Name", "Quantity", "Expiry Date", "Pack Size"]
+            ];
 
             const rows = Array.from(document.querySelectorAll('#expiredTable tbody tr')).map(row => {
                 const articleName = row.cells[0].textContent;
@@ -6156,11 +6169,14 @@
                 return [articleName, quantity, expiryDate, packSize];
             });
 
+            // Sort rows A to Z by Article Name
             rows.sort((a, b) => a[0].localeCompare(b[0]));
             rows.forEach(row => wsData.push(row));
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Expired Articles");
+
+            // Save the file with the correct filename
             XLSX.writeFile(wb, "expired_articles.xlsx");
         }
 
